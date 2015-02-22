@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile solution
+erl -noshell -s solution test_solution -s init stop | tee test_solution.stdout

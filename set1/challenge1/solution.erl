@@ -3,7 +3,7 @@
 
 hex_str_to_base64(Hex_String)->
     {ok,[Num], _} = io_lib:fread("~16u", Hex_String),
-    A = binary:encode_unsigned(Num, big),
+    A = binary:encode_unsigned(Num, big), %Read an interger, returns a binary
     base64:encode(A).
 
 test_solution()->
