@@ -14,9 +14,16 @@ solution()->
     %% Plain_text = decipher(Binary, Estimated_Keysize),
     %% io:format("Plain_text: ~p~n",[Plain_text]).
 
-%% decipher(Binary, Keysize)->
-%%     KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary), %% Return Binary List with element size is keysize
-%%     BinaryList = transpose_binary_list(KeysizeBinaryList), %% BinaryList is a list with size of keysize
+
+decipher_data_in_a_binary(Binary, Keysize)->
+    %% Return Binary List with element size is keysize
+    KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary), 
+    %% BinaryList is a list with size of keysize
+    BinaryList = transpose_binary_list(KeysizeBinaryList), 
+    %% Estimate the key for each binary in BinaryList
+    %% decipher(X) returns decipher binary
+    %% [decipher(X) || X <- BinaryList] 
+    %% transpose the list above, then we will get the plain text.
     
 test_transpose_binary_list()->
     KeysizeBinaryList = [<<"aeim">>,<<"bfjn">>,<<"cgko">>, <<"dhlp">>],
