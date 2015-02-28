@@ -1,20 +1,48 @@
 -module(solution).
--export([test_base64/0, test_create_pair_list/0, test_hamming_d/0, test_binary_to_keysize_binary_list/0, test_average_hd/0, read_6_txt_into_a_bianry/0, solution/0]).
+-export([test_base64/0, test_create_pair_list/0, test_hamming_d/0, test_binary_to_keysize_binary_list/0, test_average_hd/0, read_6_txt_into_a_bianry/0, solution/0, test_transpose_binary_list/0]).
 
--define(MIN_KEYSIZE, 5).
--define(MAX_KEYSIZE, 5).
+-define(MIN_KEYSIZE, 2).
+-define(MAX_KEYSIZE, 40).
 
-% Read the file, strip the newline delimiter, keyword size range is 2 to 40, for lists:seq(2,20), we can calculate the average_hd, then choose the minimum of the list of average_hd returned value.
+% Read the file, strip the newline delimiter, keyword size range is 2 to 40, for lists:seq(2,20), we can calculate the average_hd, then choose the minimum of the list of average_hd returned values.  
 solution()->
     Base64Binary = read_6_txt_into_a_bianry(),
     Binary = base64:decode(Base64Binary),
-    %%    io:format("Binary: ~p~n",[Binary]).
+
     Estimated_Keysize = estimate_keysize(Binary),
     io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]).
+    %% Plain_text = decipher(Binary, Estimated_Keysize),
+    %% io:format("Plain_text: ~p~n",[Plain_text]).
+
+%% decipher(Binary, Keysize)->
+%%     KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary), %% Return Binary List with element size is keysize
+%%     BinaryList = transpose_binary_list(KeysizeBinaryList), %% BinaryList is a list with size of keysize
+    
+test_transpose_binary_list()->
+    KeysizeBinaryList = [<<"aeim">>,<<"bfjn">>,<<"cgko">>, <<"dhlp">>],
+    TransposedBinaryList = transpose_binary_list(KeysizeBinaryList),
+    io:format("~p~n.",[TransposedBinaryList]).
+
+transpose_binary_list(KeysizeBinaryList)->
+    transpose_binary_list(KeysizeBinaryList, byte_size(lists:nth(1, KeysizeBinaryList)), []).
+
+transpose_binary_list(_KeysizeBinaryList, 0, TransposedList)->
+    TransposedList;
+transpose_binary_list(KeysizeBinaryList, RemainingBytes, TransposedList)->
+    %% Get_ciphered_bytes_in_a_binary. Each byte is extracted from each binary in position of first byte of RemainingBytes
+    Rowbinary = get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes), 
+    transpose_binary_list(KeysizeBinaryList, RemainingBytes-1, TransposedList ++ [Rowbinary]).
+
+get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes) ->
+    SampleKeysizeBinary = lists:nth(1, KeysizeBinaryList),
+    Keysize = byte_size(SampleKeysizeBinary),
+    UsedBits = (Keysize - RemainingBytes) * 8, 
+    BytesInList = [ ExtractedByte || <<_:UsedBits, ExtractedByte:8, _/binary>> <- KeysizeBinaryList],
+    list_to_binary(BytesInList).
 
 estimate_keysize(Binary)->
-    Keysize_Score_List = [keysize_score(X, Binary)||X <- lists:seq(?MIN_KEYSIZE, ?MAX_KEYSIZE)],
-    lists:min([Keysize_Score_List]).
+    Keysize_Score_List = [{keysize_score(X, Binary), X}||X <- lists:seq(?MIN_KEYSIZE, ?MAX_KEYSIZE)],
+    lists:min(Keysize_Score_List).
 
 keysize_score(Keysize, Binary)->
     BinaryList = binary_to_keysize_binary_list(Keysize, Binary),
@@ -78,7 +106,17 @@ hamming_d(BinaryA, BinaryB)->
     Bits = bit_size(BinaryA),
     <<IntA:Bits>> = BinaryA,
     <<IntB:Bits>> = BinaryB,
-    bitpop:count(IntA bxor IntB)/Bits. %% The bitpop count only takes 32 bit integer, need to adapt that.
+    count(IntA bxor IntB)/Bits. %% The bitpop count only takes 32 bit integer, need to adapt that.
+
+count(A)->
+    count(A, 0).
+
+count(0, Bits)->
+    Bits;
+count(A, Accu_Bits) ->
+    Bits = bitpop:count(A band 16#FFFFFFFF),
+    count(A bsr 32, Accu_Bits+Bits).
+
 
 test_average_hd()->
 %    average_hd([16#ff, 16#ff, 16#fe, 16#fe]).
