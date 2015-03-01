@@ -4,7 +4,7 @@
 -define(MIN_KEYSIZE, 2).
 -define(MAX_KEYSIZE, 40).
 
-% Read the file, strip the newline delimiter, keyword size range is 2 to 40, for lists:seq(2,20), we can calculate the average_hd, then choose the minimum of the list of average_hd returned values.  
+% Read the file, strip the newline delimiter, keyword size range is 2 to 40, for lists:seq(2,20), we can calculate the average_hd, then choose the minimum of the list of average_hd returned values.
 print(VariableName,Value)->
     io:format("~p: ~p~n",[VariableName,Value]).
 
@@ -15,23 +15,27 @@ solution()->
     Estimated_Keysize = estimate_keysize(Binary),
     io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]),
     PlainTextForEachKeyList = decipher_data_in_a_binary(Binary, Estimated_Keysize),
-    
+
+    PlainTextInKeySizeBinaryList = transpose_binary_list([decipher(X) || X <- PlainTextForEachKeyList]),
+    %% transpose the list above, then we will get the plain text.
+
+    PlainTextInKeySizeStringList = [binary_to_list(X)||X<-PlainTextInKeySizeBinaryList],
+
+    PlainText = lists:flatten(PlainTextInKeySizeStringList),
     %% Plain_text = decipher(Binary, Estimated_Keysize),
-    io:format("Plain_text: ~p~n",[PlainTextForEachKeyList]).
+    io:format("Plain_text: ~p~n",[PlainText]).
 
 
 decipher_data_in_a_binary(Binary, Keysize)->
     %% Return Binary List with element size is keysize
     print("Keysize", Keysize),
     print("Binary", Binary),
-    KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary), 
+    KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary),
     print("KeysizeBinaryList",KeysizeBinaryList),
     %% BinaryList is a list with size of keysize
-    BinaryList = transpose_binary_list(KeysizeBinaryList), 
+    transpose_binary_list(KeysizeBinaryList).
     %% Estimate the key for each binary in BinaryList
     %% decipher(X) returns decipher binary
-    [decipher(X) || X <- BinaryList]. 
-    %% transpose the list above, then we will get the plain text.
 
 %% one_key_xor_decipher(Binary)->
     %% Binary is a ciphered text in form of binary. It's ciphered with one key in XOR operation
@@ -40,7 +44,7 @@ decipher(EncryptedBinary)->
     {_Estimated_Score, Estimated_Key} = estimate_key(EncryptedBinary),
     Estimated_String= decipher(EncryptedBinary, Estimated_Key),
     Estimated_String.
-    
+
 estimate_key(EncryptedBinary) ->
     estimate_key(EncryptedBinary, 0, {0, 0}).
 
@@ -73,14 +77,14 @@ text_scoring(Text_Binary) ->
 text_scoring(<<>>, Num_Scored_Letters, Num_Letters) ->
     {Num_Scored_Letters, Num_Letters};
 text_scoring(<<X:8, Rest_String/binary>>, Num_Scored_Letters, Num_Letters) ->
-%    Point = case lists:member(X, "etaoinshrdlu") of
-    Point = case lists:member(X, "abcdefghijklmnopqrstuvwxyz") of
+    Point = case lists:member(X, "etaoinshrdlu") of
+%    Point = case lists:member(X, "abcdefghijklmnopqrstuvwxyz") of
 		true -> 1;
 		false -> 0
 	    end,
     text_scoring(Rest_String, Num_Scored_Letters + Point, Num_Letters+1).
 
-    
+
 test_transpose_binary_list()->
     KeysizeBinaryList = [<<"aeim">>,<<"bfjn">>,<<"cgko">>, <<"dhlp">>],
     TransposedBinaryList = transpose_binary_list(KeysizeBinaryList),
@@ -93,26 +97,26 @@ transpose_binary_list(_KeysizeBinaryList, 0, TransposedList)->
     TransposedList;
 transpose_binary_list(KeysizeBinaryList, RemainingBytes, TransposedList)->
     %% Get_ciphered_bytes_in_a_binary. Each byte is extracted from each binary in position of first byte of RemainingBytes
-    Rowbinary = get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes), 
+    Rowbinary = get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes),
     transpose_binary_list(KeysizeBinaryList, RemainingBytes-1, TransposedList ++ [Rowbinary]).
 
 get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes) ->
     SampleKeysizeBinary = lists:nth(1, KeysizeBinaryList),
     Keysize = byte_size(SampleKeysizeBinary),
-    UsedBits = (Keysize - RemainingBytes) * 8, 
+    UsedBits = (Keysize - RemainingBytes) * 8,
     BytesInList = [ ExtractedByte || <<_:UsedBits, ExtractedByte:8, _/binary>> <- KeysizeBinaryList],
     list_to_binary(BytesInList).
 
 estimate_keysize(Binary)->
     Score_Keysize_List = [{keysize_score(X, Binary), X}||X <- lists:seq(?MIN_KEYSIZE, ?MAX_KEYSIZE)],
-    {Score, Keysize} = lists:min(Score_Keysize_List),
+    {_Score, Keysize} = lists:min(Score_Keysize_List),
     Keysize.
 
 keysize_score(Keysize, Binary)->
     BinaryList = binary_to_keysize_binary_list(Keysize, Binary),
     %% io:format("BinaryList: ~p~n",[BinaryList]),
     average_hd(BinaryList).
-	
+
 
 % Read the file, strip the newline delimiter, pack all data into a binary
 read_6_txt_into_a_bianry() ->
@@ -120,7 +124,7 @@ read_6_txt_into_a_bianry() ->
     Lines = lists:reverse(ReversedLines),
     String = lists:flatten(Lines),
     erlang:list_to_binary(String).
-    
+
 read_lines(Filename) ->
     {ok, Device} = file:open(Filename, [read]),
     %% io:format("~p~n", [Device]),
@@ -152,7 +156,7 @@ test_create_pair_list()->
     StrPairList = create_pair_list([<<"string1">>,<<"string2">>,<<"string3">>,<<"string4">>]),
     io:format("~p~n",[StrPairList]).
 
-% create tuple list without duplicate pair. 
+% create tuple list without duplicate pair.
 % [a, b, c, d] -> [{a,b}, {a,c}, {a,d}, {b,c}, {b,d}, {c,d}]
 create_pair_list(List)->
     create_pair_list(List,[]).
@@ -204,6 +208,6 @@ binary_to_keysize_binary_list(Keysize, Binary, KeysizeBinaryList)
     KeysizeBinaryList;
 binary_to_keysize_binary_list(Keysize, Binary, KeysizeBinaryList) ->
     <<KeysizeBinary:Keysize/binary, B/binary>> = Binary,
-    binary_to_keysize_binary_list(Keysize, B, [KeysizeBinary|KeysizeBinaryList]).
+    binary_to_keysize_binary_list(Keysize, B, KeysizeBinaryList ++ [KeysizeBinary]).
 
-    
+
