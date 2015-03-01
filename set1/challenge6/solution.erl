@@ -5,25 +5,81 @@
 -define(MAX_KEYSIZE, 40).
 
 % Read the file, strip the newline delimiter, keyword size range is 2 to 40, for lists:seq(2,20), we can calculate the average_hd, then choose the minimum of the list of average_hd returned values.  
+print(VariableName,Value)->
+    io:format("~p: ~p~n",[VariableName,Value]).
+
 solution()->
     Base64Binary = read_6_txt_into_a_bianry(),
     Binary = base64:decode(Base64Binary),
 
     Estimated_Keysize = estimate_keysize(Binary),
-    io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]).
+    io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]),
+    PlainTextForEachKeyList = decipher_data_in_a_binary(Binary, Estimated_Keysize),
+    
     %% Plain_text = decipher(Binary, Estimated_Keysize),
-    %% io:format("Plain_text: ~p~n",[Plain_text]).
+    io:format("Plain_text: ~p~n",[PlainTextForEachKeyList]).
 
 
 decipher_data_in_a_binary(Binary, Keysize)->
     %% Return Binary List with element size is keysize
+    print("Keysize", Keysize),
+    print("Binary", Binary),
     KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary), 
+    print("KeysizeBinaryList",KeysizeBinaryList),
     %% BinaryList is a list with size of keysize
     BinaryList = transpose_binary_list(KeysizeBinaryList), 
     %% Estimate the key for each binary in BinaryList
     %% decipher(X) returns decipher binary
-    %% [decipher(X) || X <- BinaryList] 
+    [decipher(X) || X <- BinaryList]. 
     %% transpose the list above, then we will get the plain text.
+
+%% one_key_xor_decipher(Binary)->
+    %% Binary is a ciphered text in form of binary. It's ciphered with one key in XOR operation
+
+decipher(EncryptedBinary)->
+    {_Estimated_Score, Estimated_Key} = estimate_key(EncryptedBinary),
+    Estimated_String= decipher(EncryptedBinary, Estimated_Key),
+    Estimated_String.
+    
+estimate_key(EncryptedBinary) ->
+    estimate_key(EncryptedBinary, 0, {0, 0}).
+
+estimate_key(_EncryptedBinary, 256, {Best_Score, Best_key})->
+    %io:format(io:format("~p~n", [Best_Score])),
+    {Best_Score, Best_key};
+estimate_key(EncryptedBinary, Key, {Best_Score, Best_Key})->
+    Deciphered_By_Key = decipher(EncryptedBinary, Key),
+    Score = text_scoring(Deciphered_By_Key),
+    {Best_Score1, Best_Key1} =
+	case Score > Best_Score of
+	    true -> {Score, Key};
+	    false -> {Best_Score, Best_Key}
+	end,
+    estimate_key(EncryptedBinary, Key+1, {Best_Score1, Best_Key1}).
+
+decipher(EncryptedBinary, Key) ->
+    Length = byte_size(EncryptedBinary),
+    Key_Binary = binary:copy(<<Key:8>>,Length),
+    Size = Length*8,
+    << Key_Int: Size >> = Key_Binary,
+    << Encrypted_Int: Size >> = EncryptedBinary,
+    Plain_Int = Encrypted_Int bxor Key_Int,
+    <<Plain_Int:Size>>.
+
+text_scoring(Text_Binary) ->
+    {Score, _} = text_scoring(Text_Binary, 0, 0),
+    Score.
+
+text_scoring(<<>>, Num_Scored_Letters, Num_Letters) ->
+    {Num_Scored_Letters, Num_Letters};
+text_scoring(<<X:8, Rest_String/binary>>, Num_Scored_Letters, Num_Letters) ->
+%    Point = case lists:member(X, "etaoinshrdlu") of
+    Point = case lists:member(X, "abcdefghijklmnopqrstuvwxyz") of
+		true -> 1;
+		false -> 0
+	    end,
+    text_scoring(Rest_String, Num_Scored_Letters + Point, Num_Letters+1).
+
     
 test_transpose_binary_list()->
     KeysizeBinaryList = [<<"aeim">>,<<"bfjn">>,<<"cgko">>, <<"dhlp">>],
@@ -48,8 +104,9 @@ get_one_row_for_first_remainingbyte(KeysizeBinaryList, RemainingBytes) ->
     list_to_binary(BytesInList).
 
 estimate_keysize(Binary)->
-    Keysize_Score_List = [{keysize_score(X, Binary), X}||X <- lists:seq(?MIN_KEYSIZE, ?MAX_KEYSIZE)],
-    lists:min(Keysize_Score_List).
+    Score_Keysize_List = [{keysize_score(X, Binary), X}||X <- lists:seq(?MIN_KEYSIZE, ?MAX_KEYSIZE)],
+    {Score, Keysize} = lists:min(Score_Keysize_List),
+    Keysize.
 
 keysize_score(Keysize, Binary)->
     BinaryList = binary_to_keysize_binary_list(Keysize, Binary),
