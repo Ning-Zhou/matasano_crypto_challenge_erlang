@@ -1,5 +1,5 @@
 -module(solution).
--export([test_base64/0, test_create_pair_list/0, test_hamming_d/0, test_binary_to_keysize_binary_list/0, test_average_hd/0, read_6_txt_into_a_bianry/0, solution/0, test_transpose_binary_list/0]).
+-export([test_base64/0, create_pair_list/1, test_hamming_d/0, test_binary_to_keysize_binary_list/0, test_average_hd/0, read_6_txt_into_a_bianry/0, solution/0, transpose_binary_list/1]).
 
 -define(MIN_KEYSIZE, 2).
 -define(MAX_KEYSIZE, 40).
@@ -85,10 +85,6 @@ text_scoring(<<X:8, Rest_String/binary>>, Num_Scored_Letters, Num_Letters) ->
     text_scoring(Rest_String, Num_Scored_Letters + Point, Num_Letters+1).
 
 
-test_transpose_binary_list()->
-    KeysizeBinaryList = [<<"aeim">>,<<"bfjn">>,<<"cgko">>, <<"dhlp">>],
-    TransposedBinaryList = transpose_binary_list(KeysizeBinaryList),
-    io:format("~p~n.",[TransposedBinaryList]).
 
 transpose_binary_list(KeysizeBinaryList)->
     transpose_binary_list(KeysizeBinaryList, byte_size(lists:nth(1, KeysizeBinaryList)), []).
@@ -151,10 +147,6 @@ test_base64()->
     io:format("~p~n",[Base64Binary]),
     Binary1 = base64:decode(Base64Binary),
     io:format("~p~n",[Binary1]).
-
-test_create_pair_list()->
-    StrPairList = create_pair_list([<<"string1">>,<<"string2">>,<<"string3">>,<<"string4">>]),
-    io:format("~p~n",[StrPairList]).
 
 % create tuple list without duplicate pair.
 % [a, b, c, d] -> [{a,b}, {a,c}, {a,d}, {b,c}, {b,d}, {c,d}]

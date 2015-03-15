@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile solution solution_tests
+erl -noshell -s eunit test solution  -s init stop
