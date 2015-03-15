@@ -1,4 +1,4 @@
 #!/bin/bash
 
-erl -compile solution solution_tests
+erl -compile solution solution_tests bitpop
 erl -noshell -s eunit test solution  -s init stop

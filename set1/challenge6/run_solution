@@ -1,4 +1,4 @@
 #!/bin/bash
 
 erl -compile solution
-erl -noshell -s solution test_solution -s init stop | tee solution_result.txt
+erl -noshell -s solution solution -s init stop | tee solution_result.txt

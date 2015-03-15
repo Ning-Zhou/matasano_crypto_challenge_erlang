@@ -1,5 +1,5 @@
 -module(solution).
--export([test_base64/0, create_pair_list/1, test_hamming_d/0, test_binary_to_keysize_binary_list/0, test_average_hd/0, read_6_txt_into_a_bianry/0, solution/0, transpose_binary_list/1]).
+-export([test_base64/0, create_pair_list/1, hamming_d/2, binary_to_keysize_binary_list/2, average_hd/1, read_6_txt_into_a_bianry/0, solution/0, transpose_binary_list/1]).
 
 -define(MIN_KEYSIZE, 2).
 -define(MAX_KEYSIZE, 40).
@@ -13,7 +13,7 @@ solution()->
     Binary = base64:decode(Base64Binary),
 
     Estimated_Keysize = estimate_keysize(Binary),
-    io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]),
+    %% io:format("Estimated_Keysize: ~p~n",[Estimated_Keysize]),
     PlainTextForEachKeyList = decipher_data_in_a_binary(Binary, Estimated_Keysize),
 
     PlainTextInKeySizeBinaryList = transpose_binary_list([decipher(X) || X <- PlainTextForEachKeyList]),
@@ -28,10 +28,10 @@ solution()->
 
 decipher_data_in_a_binary(Binary, Keysize)->
     %% Return Binary List with element size is keysize
-    print("Keysize", Keysize),
-    print("Binary", Binary),
+    %% print("Keysize", Keysize),
+    %% print("Binary", Binary),
     KeysizeBinaryList = binary_to_keysize_binary_list(Keysize, Binary),
-    print("KeysizeBinaryList",KeysizeBinaryList),
+    %% print("KeysizeBinaryList",KeysizeBinaryList),
     %% BinaryList is a list with size of keysize
     transpose_binary_list(KeysizeBinaryList).
     %% Estimate the key for each binary in BinaryList
@@ -159,8 +159,6 @@ create_pair_list(List,PairList)->
     [H|L] = List,
     create_pair_list(L,[{H,X}||X<-L]++PairList).
 
-test_hamming_d()->
-    hamming_d(<<2#11111111:16>>, <<2#1111:16>>).
 
 hamming_d(BinaryA, BinaryB)->
     Bits = bit_size(BinaryA),
@@ -177,20 +175,11 @@ count(A, Accu_Bits) ->
     Bits = bitpop:count(A band 16#FFFFFFFF),
     count(A bsr 32, Accu_Bits+Bits).
 
-
-test_average_hd()->
-%    average_hd([16#ff, 16#ff, 16#fe, 16#fe]).
-    average_hd([16#1, 16#1, 16#0, 16#0]).
-
 average_hd(BinaryList)->
     BinaryPairList = create_pair_list(BinaryList),
     DistanceList = [hamming_d(X,Y)||{X,Y}<-BinaryPairList],
     lists:sum(DistanceList)/length(DistanceList).
 
-test_binary_to_keysize_binary_list() ->
-    Keysize = 4,
-    Binary = <<"abcdefghijklmn">>,
-    io:format("~p~n",[binary_to_keysize_binary_list(Keysize,Binary,[])]).
 
 binary_to_keysize_binary_list(Keysize, Binary) ->
     binary_to_keysize_binary_list(Keysize, Binary, []).
