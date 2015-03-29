@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile aes aes_tests
+erl -noshell -s eunit test aes  -s init stop
