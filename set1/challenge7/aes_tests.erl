@@ -1,6 +1,6 @@
 % To run tests:
 % erl -make
-% erl -noshell -eval "eunit:test(leap, [verbose])" -s init stop
+% erl -noshell -eval "eunit:test(aes, [verbose])" -s init stop
 %
 -module(aes_tests).
 -include_lib("eunit/include/eunit.hrl").
