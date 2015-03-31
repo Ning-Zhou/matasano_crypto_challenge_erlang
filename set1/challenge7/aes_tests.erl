@@ -4,7 +4,7 @@
 %
 -module(aes_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(aes, [add_round_key/2, shift_rows/1]).
+-import(aes, [add_round_key/2, shift_rows/1, rot_word/1, xtime/1]).
 
 add_round_key_test()->
     State = <<16#046681e5:32, 16#e0cb199a:32, 16#48f8d37a:32, 16#2806264c:32>>,
@@ -19,9 +19,8 @@ shift_rows_test()->
     Expected = <<16#d4bf5d30e0b452aeb84111f11e2798e5:128>>,
     ?assertEqual(Expected, Output). 
 
+rot_word_test()->
+    ?assertEqual(<<16#20304010:32>>,rot_word(<<16#10203040:32>>)).
 
-
-
-
-
-
+xtime_test()->
+    ?assertEqual(16#07, xtime(16#8e)).
