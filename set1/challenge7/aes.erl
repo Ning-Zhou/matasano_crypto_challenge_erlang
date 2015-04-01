@@ -1,5 +1,5 @@
 -module(aes).
--export([add_round_key/2, shift_rows/1, rot_word/1, xtime/1]).
+-export([add_round_key/2, shift_rows/1, rot_word/1, xtime/1, mix_column/1]).
 
 xtime(Y)->
     Y1 = Y bsl 1,
@@ -25,3 +25,26 @@ shift_rows(<<B1_B1:8, B2_B14:8, B3_B11:8, B4_B8:8,
 
 rot_word(<<Left:8, Right:24>>)->
     <<Right:24, Left:8>>.
+
+multiply(0, _X) -> 0;
+multiply(1, X) -> X;
+multiply(2, X) -> xtime(X);
+multiply(4, X) -> xtime(xtime(X));
+multiply(8, X) -> xtime(multiply(4,X));
+multiply(Y, X) ->
+    lists:foldl(fun(E, Accu) -> multiply(E band Y, X) bxor Accu end,
+		0,
+		[1, 2, 4, 8]).
+
+mix_column(State) ->
+    mix_column(State, <<>>).
+
+mix_column(<<>>, Accu)-> Accu;
+mix_column(<<S0:8, S1:8, S2:8, S3:8, T/binary>>, Accu) ->
+    NewColumn = <<(multiply(2, S0) bxor multiply(3, S1) bxor multiply(1, S2) bxor multiply(1, S3)),
+		  (multiply(1, S0) bxor multiply(2, S1) bxor multiply(3, S2) bxor multiply(1, S3)),
+		  (multiply(1, S0) bxor multiply(1, S1) bxor multiply(2, S2) bxor multiply(3, S3)),
+		  (multiply(3, S0) bxor multiply(1, S1) bxor multiply(1, S2) bxor multiply(2, S3))
+		  >>,
+    mix_column(T, <<Accu/binary, NewColumn/binary>>).
+
