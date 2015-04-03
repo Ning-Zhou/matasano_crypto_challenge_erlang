@@ -4,12 +4,12 @@
 %
 -module(aes_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(aes, [add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, inv_s_stable/2, sub_bytes/2]).
+-import(aes, [add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, inv_s_stable/2, sub_bytes/1]).
 
-%% sub_bytes_test()->
-%%     State = <<16#193de3bea0f4e22b9ac68d2ae9f84808:128>>,
-%%     Expected = <<16#d42711aee0bf98f1b8b45de51e415230:128>>,
-%%     ?assertEqual(Expected, sub_bytes(State)).
+sub_bytes_test()->
+    State = <<16#193de3bea0f4e22b9ac68d2ae9f84808:128>>,
+    Expected = <<16#d42711aee0bf98f1b8b45de51e415230:128>>,
+    ?assertEqual(Expected, sub_bytes(State)).
 
 s_table_test()->
     ?assertEqual(16#63, s_table(1,1)),
