@@ -1,5 +1,41 @@
 -module(aes).
--export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1]).
+-export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1]).
+
+print(Y)->
+    io:format("<<~s>>~n", [[io_lib:format("~2.16.0B ",[X]) || <<X:8>> <= Y ]]).
+
+key_expansion(<<Key:16/binary>>) -> key_expansion(Key, 4, 4);
+key_expansion(<<Key:24/binary>>) -> key_expansion(Key, 6, 6);
+key_expansion(<<Key:32/binary>>) -> key_expansion(Key, 8, 8).
+
+key_expansion(Key, 4, 44)-> Key;
+key_expansion(Key, 6, 52)-> Key;
+key_expansion(Key, 8, 60)-> Key;
+key_expansion(Key, Nk, I_1) when I_1 rem Nk == 0 ->
+    IntervalSize = (Nk - 2)*4,
+    HeadSize = (I_1 - Nk)*4,
+    <<_Head:HeadSize/binary, Word_I_Nk:32, _Interval:IntervalSize/binary, Temp:4/binary>> = Key,
+    <<Temp2_1:32>> = sub_bytes(rot_word(Temp)),
+    <<Temp2_2:32>> = r_con(I_1 div Nk),
+    Temp2 = Temp2_1 bxor Temp2_2,
+    NewWord = Word_I_Nk bxor Temp2,
+    key_expansion(<<Key/binary, NewWord:32>>, Nk, I_1 + 1);
+key_expansion(Key, 8, I_1) when I_1 rem 8 == 4 ->
+    HeadSize = (I_1 - 8)*4,
+    <<_Head:HeadSize/binary, Word_I_Nk:32, _Interval:24/binary, Temp:4/binary>> = Key,
+    <<Temp2:32>> = sub_bytes(Temp),
+    NewWord = Word_I_Nk bxor Temp2,
+    key_expansion(<<Key/binary, NewWord:32>>, 8, I_1 + 1);
+key_expansion(Key, Nk, I_1) ->
+    IntervalSize = (Nk - 2)*4,
+    HeadSize = (I_1 - Nk)*4,
+    <<_Head:HeadSize/binary, Word_I_Nk:32, _Interval:IntervalSize/binary, Temp:32>> = Key,
+    NewWord = Word_I_Nk bxor Temp,
+    key_expansion(<<Key/binary, NewWord:32>>, Nk, I_1 + 1).
+
+r_con(X) -> r_con(X, 1).
+r_con(1, Accu) -> <<Accu, 0, 0, 0>>;
+r_con(X, Accu) -> r_con(X-1, xtime(Accu)).
 
 sub_bytes(State)->
     sub_bytes(State, <<>>).
