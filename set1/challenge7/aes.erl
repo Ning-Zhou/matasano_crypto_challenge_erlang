@@ -1,5 +1,24 @@
 -module(aes).
--export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1]).
+-export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1, cipher/2]).
+
+cipher(PlainText, Key) ->
+    <<RoundKey:16/binary, T/binary>> = Key,
+    State = add_round_key(PlainText, RoundKey),
+    cipher_body(State, T).
+
+cipher_body(State, <<>>) ->
+    State;
+cipher_body(State, <<RoundKey:16/binary>>) ->
+    State1 = sub_bytes(State),
+    State2 = shift_rows(State1),
+    State3 = add_round_key(State2, RoundKey),
+    cipher_body(State3, <<>>);
+cipher_body(State, <<RoundKey:16/binary, T/binary>>) ->
+    State1 = sub_bytes(State),
+    State2 = shift_rows(State1),
+    State3 = mix_column(State2),
+    State4 = add_round_key(State3, RoundKey),
+    cipher_body(State4, T).
 
 print(Y)->
     io:format("<<~s>>~n", [[io_lib:format("~2.16.0B ",[X]) || <<X:8>> <= Y ]]).

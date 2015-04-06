@@ -4,9 +4,32 @@
 %
 -module(aes_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(aes, [add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, inv_s_stable/2, sub_bytes/1, key_expansion/1]).
+-import(aes, [add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, inv_s_stable/2, sub_bytes/1, key_expansion/1, cipher/2]).
 print(X)->
     io:format("~p~n",[X]).
+
+cipher_test()->
+    PlainText = <<16#00112233445566778899aabbccddeeff:128>>,
+    Key = <<16#000102030405060708090a0b0c0d0e0f:128>>,
+    ExpandedKey = key_expansion(Key),
+    CipherText = cipher(PlainText, ExpandedKey),
+    Expected = <<16#69c4e0d86a7b0430d8cdb78070b4c55a:128>>,
+    ?assertEqual(Expected, CipherText),
+
+    PlainText = <<16#00112233445566778899aabbccddeeff:128>>,
+    Key_6words = <<16#000102030405060708090a0b0c0d0e0f1011121314151617:192>>,
+    ExpandedKey_6words = key_expansion(Key_6words),
+    CipherText_6words = cipher(PlainText, ExpandedKey_6words),
+    Expected_6words = <<16#dda97ca4864cdfe06eaf70a0ec0d7191:128>>,
+    ?assertEqual(Expected_6words, CipherText_6words),
+
+    PlainText = <<16#00112233445566778899aabbccddeeff:128>>,
+    Key_8words = <<16#000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f:256>>,
+    ExpandedKey_8words = key_expansion(Key_8words),
+    CipherText_8words = cipher(PlainText, ExpandedKey_8words),
+    Expected_8words = <<16#8ea2b7ca516745bfeafc49904b496089:128>>,
+    ?assertEqual(Expected_8words, CipherText_8words).
+
 
 key_expansion_test()->
     Key1 = <<16#2b7e151628aed2a6abf7158809cf4f3c:128>>,
