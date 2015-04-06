@@ -1,5 +1,29 @@
 -module(aes).
--export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1, cipher/2]).
+-export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1, cipher/2, inv_sub_bytes/2, inv_cipher/2]).
+
+inv_cipher(CipherText, Key) ->
+    Size = byte_size(Key),
+    HeadSize = Size - 16,
+    <<Head:HeadSize/binary, RoundKey:16/binary>> = Key,
+    State = add_round_key(CipherText, RoundKey),
+    inv_cipher_body(State, Head).
+
+inv_cipher_body(State, <<>>) -> State;
+inv_cipher_body(State, <<RoundKey:16/binary>>) ->
+    State1 = inv_shift_rows(State),
+    State2 = inv_sub_bytes(State1),
+    State3 = add_round_key(State2, RoundKey),
+    inv_cipher_body(State3, <<>>);
+inv_cipher_body(State, Key) ->
+    Size = byte_size(Key),
+    HeadSize = Size - 16,
+    <<Head:HeadSize/binary, RoundKey:16/binary>> = Key,
+    State1 = inv_shift_rows(State),
+    State2 = inv_sub_bytes(State1),
+    State3 = add_round_key(State2, RoundKey),
+    State4 = inv_mix_column(State3),
+    inv_cipher_body(State4, Head).
+
 
 cipher(PlainText, Key) ->
     <<RoundKey:16/binary, T/binary>> = Key,
@@ -62,6 +86,13 @@ sub_bytes(State)->
 sub_bytes(<<>>, Accu)-> Accu;
 sub_bytes(<<X:4, Y:4, T/binary>>, Accu)->
     sub_bytes(T, <<Accu/binary, (s_table(X+1, Y+1))>>).
+
+inv_sub_bytes(State)->
+    inv_sub_bytes(State, <<>>).
+
+inv_sub_bytes(<<>>, Accu)-> Accu;
+inv_sub_bytes(<<X:4, Y:4, T/binary>>, Accu)->
+    inv_sub_bytes(T, <<Accu/binary, (inv_s_table(X+1, Y+1))>>).
 
 s_table(X, Y)->
     T = [[16#63, 16#7C, 16#77, 16#7B, 16#F2, 16#6B, 16#6F, 16#C5, 16#30, 16#01, 16#67, 16#2B, 16#FE, 16#D7, 16#AB, 16#76],
