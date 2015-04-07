@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile solution ecb 
+erl -noshell -s solution solution -s init stop
