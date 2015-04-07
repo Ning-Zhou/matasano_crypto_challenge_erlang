@@ -4,7 +4,6 @@
 test_solution()->
     io:format("~p~n", [solution()]).
 
-
 solution()->
     Lines = read_lines("4.txt"),
     Evaluations = [decipher(string:strip(X, both, $\n))||X<-Lines],
@@ -14,8 +13,6 @@ solution()->
     io:format("~p~n", [Max_Score]),
     lists:keyfind(Max_Score, 1, Evaluations).
 
-
-
 read_lines(Filename) ->
     {ok, Device} = file:open(Filename, [read]),
     % io:format("~p~n", [Device]),
@@ -24,14 +21,15 @@ read_lines(Filename) ->
     Lines.
 
 read_lines_from(FileDevice) ->
-        case file:read_line(FileDevice) of
-	    {ok, Data} ->
-		    %io:format("~p~n", [Data]),
-		[Data | read_lines_from(FileDevice)];
-	    eof        -> []
+    lists:reverse(read_lines_from(FileDevice, [])).
+
+read_lines_from(FileDevice, Accu) ->
+    case file:read_line(FileDevice) of
+	{ok, Data} ->
+	    %% io:format("~p~n", [Data]),
+	    read_lines_from(FileDevice, [Data|Accu]);
+	eof        -> Accu
     end.
-
-
 
 decipher(EncryptedText)->
     {ok,[EncryptedInt], _} = io_lib:fread("~16u", EncryptedText),
