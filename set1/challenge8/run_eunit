@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile ecb ebc_tests
+erl -noshell -s eunit test ecb  -s init stop
