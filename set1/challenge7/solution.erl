@@ -9,9 +9,8 @@ solution()->
     Key = <<"YELLOW SUBMARINE">>,
     %%    inv_cipher(CipherText2, Key).
     PlainText = inv_cipher(CipherText2, Key),
-    PlainText1 = binary_to_list(PlainText), 
-    %%  io:format("~p~n",[PlainText]).
-    [io:format("~p~n",[[X]])||X <- PlainText1].
+    file:write_file("solution_result.txt", PlainText).
+
 
 inv_cipher(CipherText, Key)->
     ExpandedKey = aes:key_expansion(Key),
@@ -21,23 +20,3 @@ inv_cipher_body(CipherText, _, Accu) when byte_size(CipherText) < 16 -> Accu;
 inv_cipher_body(<<Head:16/binary, T/binary>>, ExpandedKey, Accu) ->
     PlainText = aes:inv_cipher(Head, ExpandedKey),
     inv_cipher_body(T, ExpandedKey, <<Accu/binary, PlainText/binary>>).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

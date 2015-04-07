@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile solution aes 
+erl -noshell -s solution solution -s init stop
