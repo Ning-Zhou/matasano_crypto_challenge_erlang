@@ -6,7 +6,7 @@ is_member(SubBin, Bin) ->
     SubSize = byte_size(SubBin),
     <<H:SubSize/binary, _T/bitstring>> = Bin,
     case H == SubBin of
-	true -> print(H),
+	true -> %% print(H),
 	    true;
 	false -> <<_P:4, R/bitstring>> = Bin, is_member(SubBin, R)
     end.
@@ -23,5 +23,5 @@ is_ecb_cipher_binary(Bitstring, EcbSize)->
 	    is_ecb_cipher_binary(T, EcbSize)
     end.
 
-print(Y)->
-    io:format("~p~n", [Y]).
+%% print(Y)->
+%%    io:format("~p~n", [Y]).

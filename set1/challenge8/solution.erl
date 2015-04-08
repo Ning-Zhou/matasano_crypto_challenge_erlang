@@ -3,7 +3,7 @@
 
 solution()->
     Lines = read_lines("8.txt"),
-    [io:format(Line) || Line <- Lines, is_ecb_cipher_text(Line)].
+    [io:format(Line ++ " is the ecb cipher text.\n") || Line <- Lines, is_ecb_cipher_text(Line)].
 
 is_ecb_cipher_text(Line)->
     %% io:format(Line),
