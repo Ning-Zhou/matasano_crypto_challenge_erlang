@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile pkcs pkcs_tests
+erl -noshell -s eunit test pkcs  -s init stop
