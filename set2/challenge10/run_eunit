@@ -1,0 +1,4 @@
+#!/bin/bash
+
+erl -compile cbc cbc_tests aes
+erl -noshell -s eunit test cbc  -s init stop
