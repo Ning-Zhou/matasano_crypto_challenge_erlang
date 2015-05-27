@@ -1,0 +1,3 @@
+#!/bin/bash
+erl -compile pkcs aes chllge11
+erl -noshell -s chllge11 solution -s init stop
