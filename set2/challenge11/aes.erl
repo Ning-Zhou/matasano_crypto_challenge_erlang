@@ -1,6 +1,8 @@
 -module(aes).
 -export([add_round_key/2, shift_rows/1, inv_shift_rows/1, rot_word/1, xtime/1, mix_column/1, inv_mix_column/1, s_table/2, sub_bytes/1, key_expansion/1, cipher/2, inv_sub_bytes/2, inv_cipher/2, generate_random_aes_key/0]).
 
+%% This aes.erl has one more function generate_randon_aes_key() than the one in challenge 10
+
 generate_random_aes_key()->
     crypto:strong_rand_bytes(16).
 
